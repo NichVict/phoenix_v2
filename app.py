@@ -9,7 +9,7 @@ import dashboards.bdr as dash_bdr
 import dashboards.smallcaps as dash_small
 import dashboards.opcoes as dash_opc
 import dashboards.scanner_acoes as dash_scan_acoes
-import dashboards.scanner_opcoes as dash_scan_opc
+#import dashboards.scanner_opcoes as dash_scan_opc
 
 # Admin pages
 import admin.dashboard as admin_dash
@@ -69,7 +69,7 @@ pages["💵 Carteira BDR"] = dash_bdr.render
 pages["📈 Carteira SmallCaps"] = dash_small.render
 pages["🟪 Carteira de Opções"] = dash_opc.render
 pages["🔍 Scanner de Ações"] = dash_scan_acoes.render
-pages["🔎 Scanner de Opções"] = dash_scan_opc.render
+#pages["🔎 Scanner de Opções"] = dash_scan_opc.render
 
 
 # ---------------------------------------------------
