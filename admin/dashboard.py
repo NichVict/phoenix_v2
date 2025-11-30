@@ -1,9 +1,5 @@
 import streamlit as st
-from admin.users import (
-    list_users,
-    count_active_users,
-    count_expired_users
-)
+import admin.users as admin_users
 
 st.set_page_config(
     page_title="Admin - Phoenix",
@@ -43,9 +39,9 @@ st.title("🛠 Painel Administrativo — Phoenix")
 st.caption("Gestão centralizada — CRM, Telegram, Assinaturas e Logs")
 
 # ==================== CARDS ====================
-users = list_users()
-ativos = count_active_users()
-vencidos = count_expired_users()
+admin_users.list_users()
+ativos = admin_users.count_active_users()
+vencidos = admin_users.count_expired_users()
 total = len(users)
 
 cols = st.columns(4)
