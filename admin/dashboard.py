@@ -39,7 +39,7 @@ st.title("🛠 Painel Administrativo — Phoenix")
 st.caption("Gestão centralizada — CRM, Telegram, Assinaturas e Logs")
 
 # ==================== CARDS ====================
-admin_users.list_users()
+users = admin_users.list_users()          # <<<<<<<<<<<<<< ADICIONADO
 ativos = admin_users.count_active_users()
 vencidos = admin_users.count_expired_users()
 total = len(users)
@@ -51,6 +51,7 @@ cards = [
     ("👤 Total Cadastrados", total),
     ("🫂 Leads", len([u for u in users if "Leads" in (u.get("carteiras") or [])])),
 ]
+
 for col, (titulo, valor) in zip(cols, cards):
     with col:
         st.markdown(f"""
