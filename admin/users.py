@@ -1,12 +1,12 @@
 import os
 from datetime import date, datetime, timedelta
 from typing import List, Dict, Any, Optional
-from admin.logs import registrar_log
-
 
 import pandas as pd
 import streamlit as st
-from supabase import create_client, Client
+
+from admin.logs import registrar_log
+from core.supabase_client import get_supabase
 
 # ============================================================
 # CONFIGURAÇÕES GERAIS / SECRETS
@@ -25,32 +25,10 @@ def _get_secret(name: str, default=None):
     return os.getenv(name, default)
 
 
-SUPABASE_URL = _get_secret("SUPABASE_URL")
-SUPABASE_KEY = _get_secret("SUPABASE_KEY")
-
 EMAIL_USER = _get_secret("email_sender")
 EMAIL_PASS = _get_secret("gmail_app_password")
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
-
-_supabase_client: Optional[Client] = None
-
-
-def get_supabase() -> Optional[Client]:
-    """Lazy init do client Supabase – não quebra o app se faltar config."""
-    global _supabase_client
-    if _supabase_client is not None:
-        return _supabase_client
-
-    if not SUPABASE_URL or not SUPABASE_KEY:
-        return None
-
-    try:
-        _supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
-    except Exception as e:
-        st.error(f"Falha ao inicializar Supabase no módulo admin.users: {e}")
-        _supabase_client = None
-    return _supabase_client
 
 
 # ============================================================
@@ -359,12 +337,15 @@ def list_users() -> List[Dict[str, Any]]:
     Retorna lista de clientes (dicts) do Supabase.
     Usado pelo painel admin para contagem rápida.
     """
-    sb = get_supabase()
+    try:
+        sb = get_supabase()
+    except Exception:
+        return []
     if not sb:
         return []
     try:
-        resp = sb.table("clientes").select("*").execute()
-        return resp.data or []
+        data = sb.select("clientes", "*")
+        return data or []
     except Exception:
         return []
 
@@ -573,7 +554,11 @@ def _disparar_renovacoes_automaticas(dados: List[Dict[str, Any]]):
     Faz o disparo automático de e-mails de renovação
     dentro da própria página, sem thread separada.
     """
-    sb = get_supabase()
+    try:
+        sb = get_supabase()
+    except Exception:
+        return
+
     if not sb or not dados:
         return
 
@@ -614,9 +599,7 @@ def _disparar_renovacoes_automaticas(dados: List[Dict[str, Any]]):
             # se pelo menos 1 email enviado, marca flag
             if ok:
                 try:
-                    sb.table("clientes").update({campo_flag: True}).eq(
-                        "id", cli["id"]
-                    ).execute()
+                    sb.update("clientes", {"id": f"eq.{cli['id']}"}, {campo_flag: True})
                 except Exception:
                     pass
 
@@ -624,9 +607,14 @@ def _disparar_renovacoes_automaticas(dados: List[Dict[str, Any]]):
 def render():
     """
     Entry point da página de CRM dentro do Phoenix v2.
-    Chamado pelo roteador admin (ex.: admin/dashboard chamando st.page_link).
+    Chamado pelo roteador admin.
     """
-    sb = get_supabase()
+    try:
+        sb = get_supabase()
+    except Exception as e:
+        st.error(f"Falha ao inicializar Supabase (REST): {e}")
+        return
+
     if not sb:
         st.error("Configuração do Supabase ausente. Defina SUPABASE_URL e SUPABASE_KEY.")
         return
@@ -638,8 +626,7 @@ def render():
     # 1) CARREGAR DADOS
     # ==============================
     try:
-        query = sb.table("clientes").select("*").order("created_at", desc=True).execute()
-        dados = query.data or []
+        dados = sb.select("clientes", "*")
     except Exception as e:
         st.error(f"Erro ao carregar dados do Supabase: {e}")
         dados = []
@@ -814,7 +801,7 @@ def render():
                 if is_edit:
                     try:
                         edit_id = str(st.session_state.get("selected_client_id"))
-                        sb.table("clientes").update(payload).eq("id", edit_id).execute()
+                        sb.update("clientes", {"id": f"eq.{edit_id}"}, payload)
 
                         telegram_link = f"https://t.me/milhao_crm_bot?start={edit_id}"
 
@@ -851,8 +838,9 @@ def render():
                 # INSERT
                 else:
                     try:
-                        res = sb.table("clientes").insert(payload).execute()
-                        cliente_id = res.data[0]["id"]
+                        res = sb.insert("clientes", payload)
+                        # Supabase REST retorna lista de linhas inseridas
+                        cliente_id = res[0]["id"]
                         telegram_link = (
                             f"https://t.me/milhao_crm_bot?start={cliente_id}"
                         )
@@ -869,12 +857,6 @@ def render():
                                 "carteiras": payload.get("carteiras", [])
                             }
                         )
-
-
-                        
-                        
-
-
 
                         st.session_state["last_cadastro"] = {
                             "id": cliente_id,
@@ -923,18 +905,15 @@ def render():
                     for carteira, ok, msg in resultados:
                         if ok:
                             st.success(f"✅ {carteira}: enviado")
-                        else:
-                            ok_all = False
-                            st.error(f"❌ {carteira}: falhou — {msg}")
                             registrar_log(
                                 evento="email_enviado",
                                 descricao=f"Email de boas-vindas enviado ({carteira})",
                                 cliente_id=lc['id'],
                                 extra={"email": lc["email"]}
                             )
-
-
-                            
+                        else:
+                            ok_all = False
+                            st.error(f"❌ {carteira}: falhou — {msg}")
                     if ok_all:
                         st.toast(
                             "Todos os e-mails foram enviados com sucesso.", icon="✅"
@@ -949,7 +928,6 @@ def render():
                     descricao="Pack de boas-vindas não enviado a pedido do usuário",
                     cliente_id=lc["id"]
                 )
-
 
     # ==============================
     # 5) LISTAGEM / TABELA
@@ -1047,22 +1025,21 @@ def render():
                     st.caption(f"📝 {row['observacao']}")
             with c2:
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("✏️ Editar", key=f"edit_{row['id']}"):
+                if st.button("✏️ Editar", key=f"edit_{row['id']}"]:
                     st.session_state["edit_mode"] = True
                     st.session_state["edit_data"] = dict(row)
                     st.session_state["selected_client_id"] = row["id"]
                     st.experimental_rerun()
 
-                if st.button("🗑️ Excluir", key=f"del_{row['id']}"):
+                if st.button("🗑️ Excluir", key=f"del_{row['id']}"]:
                     try:
-                        sb.table("clientes").delete().eq("id", row["id"]).execute()
+                        sb.delete("clientes", {"id": f"eq.{row['id']}"})
                         st.success("Cliente removido.")
                         registrar_log(
                             evento="cliente_excluido",
                             descricao=f"Cliente excluído: {row['nome']}",
                             cliente_id=row["id"]
                         )
-
                         st.experimental_rerun()
                     except Exception as e:
                         st.error(f"Erro ao excluir: {e}")
