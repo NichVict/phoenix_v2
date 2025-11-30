@@ -87,7 +87,7 @@ pages["💵 Carteira BDR"] = dash_bdr.render
 pages["📈 Carteira SmallCaps"] = dash_small.render
 pages["🟪 Carteira de Opções"] = dash_opc.render
 pages["🔍 Scanner de Ações"] = dash_scan_acoes.render
-#pages["🔎 Scanner de Opções"] = dash_scan_opc.render
+pages["🔎 Scanner de Opções"] = dash_scan_opc.render
 
 
 # ---------------------------------------------------
