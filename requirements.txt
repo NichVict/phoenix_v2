@@ -1,0 +1,16 @@
+streamlit
+pandas
+numpy
+python-dateutil
+matplotlib
+plotly
+supabase-py
+requests
+email-validator
+PyJWT
+pytz
+python-dotenv
+scipy
+yfinance
+gunicorn
+reportlab
