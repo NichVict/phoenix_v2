@@ -1027,13 +1027,13 @@ def render():
                     st.caption(f"📝 {row['observacao']}")
             with c2:
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("✏️ Editar", key=f"edit_{row['id']}"]:
+                if st.button("✏️ Editar", key=f"edit_{row['id']}"):
                     st.session_state["edit_mode"] = True
                     st.session_state["edit_data"] = dict(row)
                     st.session_state["selected_client_id"] = row["id"]
                     st.experimental_rerun()
 
-                if st.button("🗑️ Excluir", key=f"del_{row['id']}"]:
+                if st.button("🗑️ Excluir", key=f"del_{row['id']}"):
                     try:
                         sb.delete("clientes", {"id": f"eq.{row['id']}"})
                         st.success("Cliente removido.")
