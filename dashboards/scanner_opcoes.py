@@ -28,7 +28,8 @@ from scipy.stats import norm
 from scipy.optimize import brentq
 from supabase_ops import inserir_operacao
 import supabase_ops as supabase_ops_mod
-from fenix_opcoes.notificacoes import enviar_email, enviar_telegram
+from notificacoes import enviar_email, enviar_telegram
+
 
 
 # =====================================================================
