@@ -12,7 +12,7 @@ import dashboards.scanner_acoes as dash_scan_acoes
 #import dashboards.scanner_opcoes as dash_scan_opc
 
 # Admin pages
-import admin.dashboard as admin_dash
+
 import admin.users as admin_users
 import admin.access as admin_access
 import admin.telegram as admin_telegram
