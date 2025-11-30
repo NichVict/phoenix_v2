@@ -1,10 +1,37 @@
-from core.supabase_client import get_supabase
+# core/permissions.py
+# ============================================
+# Gerenciamento simples de permissões do usuário
+# ============================================
 
-def get_user_permissions(email: str):
-    supabase = get_supabase()
-    res = supabase.table("clientes").select("*").eq("email", email).execute()
+import streamlit as st
 
-    if not res.data:
-        return []
+# Estrutura mínima (pode expandir depois se quiser)
+DEFAULT_PERMISSIONS = {
+    "admin": [
+        "view_dashboard",
+        "manage_users",
+        "manage_access",
+        "view_logs",
+        "manage_crm",
+        "manage_bot",
+    ],
+    "user": [
+        "view_dashboard",
+    ]
+}
 
-    return res.data[0].get("carteiras", [])
+def get_role() -> str:
+    """Retorna o papel do usuário logado (fixo por enquanto)."""
+    return st.session_state.get("role", "admin")  # padrão: admin
+
+def get_user_permissions() -> list:
+    """Retorna permissões do usuário atual."""
+    role = get_role()
+    return DEFAULT_PERMISSIONS.get(role, [])
+
+def set_user_permissions(role: str, permissions: list):
+    """
+    Atualiza permissões do papel especificado.
+    Para ambiente real, isso deve ir para o Supabase.
+    """
+    DEFAULT_PERMISSIONS[role] = permissions
