@@ -1,6 +1,8 @@
 import os
 from datetime import date, datetime, timedelta
 from typing import List, Dict, Any, Optional
+from admin.logs import registrar_log
+
 
 import pandas as pd
 import streamlit as st
@@ -827,6 +829,17 @@ def render():
                         }
 
                         st.success("✅ Cliente atualizado com sucesso!")
+                        # LOG — edição
+                        registrar_log(
+                            evento="edicao",
+                            descricao=f"Cliente atualizado: {nome}",
+                            cliente_id=edit_id,
+                            extra={
+                                "email": email,
+                                "carteiras": payload.get("carteiras", [])
+                            }
+                        )
+
                         st.session_state["edit_mode"] = False
                         st.session_state["edit_id"] = None
                         st.session_state["edit_data"] = None
@@ -845,6 +858,23 @@ def render():
                         )
 
                         st.success("✅ Cliente cadastrado com sucesso!")
+
+                        # LOG — cadastro
+                        registrar_log(
+                            evento="cadastro",
+                            descricao=f"Novo cliente cadastrado: {nome}",
+                            cliente_id=cliente_id,
+                            extra={
+                                "email": email,
+                                "carteiras": payload.get("carteiras", [])
+                            }
+                        )
+
+
+                        
+                        
+
+
 
                         st.session_state["last_cadastro"] = {
                             "id": cliente_id,
@@ -896,6 +926,15 @@ def render():
                         else:
                             ok_all = False
                             st.error(f"❌ {carteira}: falhou — {msg}")
+                            registrar_log(
+                                evento="email_enviado",
+                                descricao=f"Email de boas-vindas enviado ({carteira})",
+                                cliente_id=lc['id'],
+                                extra={"email": lc["email"]}
+                            )
+
+
+                            
                     if ok_all:
                         st.toast(
                             "Todos os e-mails foram enviados com sucesso.", icon="✅"
@@ -905,6 +944,12 @@ def render():
             if st.button("❌ Não enviar e-mails", use_container_width=True):
                 st.session_state["last_cadastro"] = None
                 st.toast("Cadastro concluído sem envio de e-mails.", icon="✅")
+                registrar_log(
+                    evento="email_nao_enviado",
+                    descricao="Pack de boas-vindas não enviado a pedido do usuário",
+                    cliente_id=lc["id"]
+                )
+
 
     # ==============================
     # 5) LISTAGEM / TABELA
@@ -1012,6 +1057,12 @@ def render():
                     try:
                         sb.table("clientes").delete().eq("id", row["id"]).execute()
                         st.success("Cliente removido.")
+                        registrar_log(
+                            evento="cliente_excluido",
+                            descricao=f"Cliente excluído: {row['nome']}",
+                            cliente_id=row["id"]
+                        )
+
                         st.experimental_rerun()
                     except Exception as e:
                         st.error(f"Erro ao excluir: {e}")
