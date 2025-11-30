@@ -8,3 +8,6 @@ requests
 PyJWT
 pytz
 python-dotenv
+scipy
+yfinance
+reportlab
