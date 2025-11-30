@@ -32,11 +32,20 @@ st.set_page_config(
 # ---------------------------------------------------
 # AUTENTICAÇÃO BÁSICA
 # ---------------------------------------------------
-user = get_current_user()
+# ======================================================
+# 🔓 MODO DESENVOLVEDOR — LOGIN DESATIVADO TEMPORARIAMENTE
+# ======================================================
+# Em produção, basta remover esse bloco e voltar ao login normal.
 
-if user is None:
-    login_screen()
-    st.stop()
+user = {"email": "dev@local"}
+email = "dev@local"
+
+# pular completamente o sistema de login:
+# user = get_current_user()
+# if user is None:
+#     login_screen()
+#     st.stop()
+
 
 # Extrai email
 email = getattr(user, "email", None)
