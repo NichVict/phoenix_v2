@@ -1,6 +1,7 @@
 import os
 from datetime import date, datetime, timedelta
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
+
 
 import pandas as pd
 import streamlit as st
@@ -396,7 +397,7 @@ def _enviar_email(
     assunto: str,
     corpo: str,
     anexar_pdf: bool = False,
-) -> tuple[bool, str]:
+) -> Tuple[bool, str]:
     if not EMAIL_USER or not EMAIL_PASS:
         return False, "Configuração de e-mail ausente."
 
@@ -430,6 +431,7 @@ def _enviar_email(
         return True, "OK"
     except Exception as e:
         return False, str(e)
+
 
 
 def enviar_emails_por_carteira(
