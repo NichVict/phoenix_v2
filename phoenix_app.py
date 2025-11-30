@@ -18,6 +18,15 @@ import admin.access as admin_access
 import admin.telegram as admin_telegram
 import admin.logs as admin_logs
 
+from admin.logs import registrar_log
+
+registrar_log(
+    evento="app_iniciado",
+    descricao="Phoenix App iniciado com sucesso (log de teste)",
+    origem="startup"
+)
+
+
 
 # ---------------------------------------------------
 # CONFIG GERAL DO APP
