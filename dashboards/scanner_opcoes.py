@@ -26,10 +26,9 @@ import streamlit as st
 import plotly.graph_objects as go
 from scipy.stats import norm
 from scipy.optimize import brentq
-
-from fenix_opcoes.supabase_ops import inserir_operacao
+from supabase_ops import inserir_operacao
+import supabase_ops as supabase_ops_mod
 from fenix_opcoes.notificacoes import enviar_email, enviar_telegram
-import fenix_opcoes.supabase_ops as supabase_ops_mod
 
 
 # =====================================================================
