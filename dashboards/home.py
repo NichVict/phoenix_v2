@@ -4,7 +4,8 @@ from core.permissions import get_user_permissions
 def render_home(user):
     st.title("🏠 Phoenix — Minhas Assinaturas")
 
-    email = user.email
+    email = user.get("email") if isinstance(user, dict) else getattr(user, "email", None)
+
     permissoes = get_user_permissions(email)
 
     st.markdown("### 📦 Minhas Carteiras / Serviços")
