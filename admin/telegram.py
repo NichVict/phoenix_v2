@@ -219,6 +219,12 @@ for _, row in df_filtrado.iterrows():
                 })
                 st.success("Sincronizado com sucesso.")
                 st.experimental_rerun()
+                registrar_log(                    
+                    evento="telegram_resync",
+                    descricao="Re-sync manual executado",
+                    cliente_id=row["id"],
+                    extra={"carteiras": row["carteiras"]}
+                )
 
             # --------------------------
             # 🚫 BOTÃO EXPULSAR MANUAL
@@ -243,6 +249,13 @@ for _, row in df_filtrado.iterrows():
 
                     st.success("Removido dos grupos: " + ", ".join(expelled_list))
                     st.experimental_rerun()
+                    registrar_log(
+                        evento="telegram_expulsao_manual",
+                        descricao="Cliente expulso manualmente dos grupos",
+                        cliente_id=row["id"],
+                        extra={"carteiras": row["carteiras"]}
+                    )
+
 
             # --------------------------
             # ♻ BOTÃO RESETAR STATUS TELEGRAM
@@ -254,6 +267,13 @@ for _, row in df_filtrado.iterrows():
                 })
                 st.info("Status resetado.")
                 st.experimental_rerun()
+                registrar_log(
+                    evento="telegram_reset",
+                    descricao="Reset manual do status Telegram",
+                    cliente_id=row["id"]
+                )
+
+                
 
 st.markdown("---")
 
@@ -324,3 +344,9 @@ if st.button("🚨 Rodar limpeza agora"):
 
     qt = cleanup()
     st.success(f"Limpeza concluída. Clientes removidos: {qt}")
+    registrar_log(
+        evento="telegram_limpeza_manual",
+        descricao=f"Limpeza manual executada ({qt} removidos)",
+        extra={"quantidade": qt}
+    )
+
